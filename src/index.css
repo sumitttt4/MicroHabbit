@@ -1,0 +1,251 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import warm, human-friendly fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap');
+
+/* Custom design system - minimal, warm, human-centered */
+@layer base {
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  
+  .font-serif {
+    font-family: 'Crimson Text', Georgia, serif;
+  }
+  
+  /* Smooth scrolling and better text rendering */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Button system - minimal, clear, tactile */
+  .btn-primary {
+    @apply bg-orange-500 hover:bg-orange-600 text-white font-medium py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl;
+  }
+  
+  .btn-secondary {
+    @apply bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium py-4 px-8 rounded-xl transition-all duration-200 border border-stone-200 hover:border-stone-300;
+  }
+  
+  /* Card system - clean, warm shadows */
+  .card {
+    @apply bg-white rounded-2xl shadow-sm p-6 border border-stone-200;
+  }
+  
+  /* Input system - friendly, accessible */
+  .input-field {
+    @apply w-full p-4 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-stone-900 placeholder-stone-500;
+  }
+  
+  /* Micro-interaction for habit completion */
+  .habit-complete {
+    @apply transform transition-all duration-300 hover:scale-105;
+  }
+  
+  .habit-complete:active {
+    @apply scale-95;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Celebration animation for habit completion */
+  .animate-celebration {
+    animation: celebration 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  /* Gentle bounce for interactive elements */
+  .animate-gentle-bounce {
+    animation: gentleBounce 0.4s ease-out;
+  }
+  
+  /* Pulse for streak milestones */
+  .animate-milestone-pulse {
+    animation: milestonePulse 1s ease-in-out;
+  }
+}
+
+/* Celebration animation for habit completion */
+@keyframes celebration {
+  0% { 
+    transform: scale(1) rotate(0deg);
+  }
+  25% { 
+    transform: scale(1.15) rotate(5deg);
+  }
+  50% { 
+    transform: scale(1.25) rotate(-5deg);
+  }
+  75% { 
+    transform: scale(1.15) rotate(3deg);
+  }
+  100% { 
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Gentle bounce for buttons and interactive elements */
+@keyframes gentleBounce {
+  0%, 100% { 
+    transform: translateY(0px);
+  }
+  50% { 
+    transform: translateY(-3px);
+  }
+}
+
+/* Milestone achievement animation */
+@keyframes milestonePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+/* Streak counter animation */
+@keyframes streakCount {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Confetti for major milestones */
+@keyframes confetti {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Progress bar fill animation */
+@keyframes progressFill {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: var(--progress-width);
+  }
+}
+
+/* Gentle shake for errors */
+@keyframes gentleShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-2px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(2px);
+  }
+}
+
+/* Fade in for content loading */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Heartbeat for important CTAs */
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.05);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+/* Loading states */
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Hover states for better UX */
+.hover-lift {
+  transition: transform 0.2s ease-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Focus states for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2;
+}
+
+/* Custom scrollbar for a more polished look */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f7f7f7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
+}
+
+/* Selection color that matches our design */
+::selection {
+  background: rgba(251, 146, 60, 0.2);
+  color: inherit;
+}

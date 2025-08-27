@@ -1,0 +1,16 @@
+{
+  "short_name": "MicroHabit",
+  "name": "MicroHabit - Simple Habit Tracking",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#22c55e",
+  "background_color": "#ffffff",
+  "description": "A minimalist habit tracking app focused on building just 3 daily habits"
+}
