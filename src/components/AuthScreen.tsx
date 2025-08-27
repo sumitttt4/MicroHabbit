@@ -61,42 +61,15 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden">
-      {/* Beautiful Forest Background */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-green-200 via-green-300 to-blue-200"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h100v100H0z' fill='%2394d3a2'/%3E%3Cpath d='M20 100c0-20 20-40 40-40s40 20 40 40' fill='%2368d391'/%3E%3Ccircle cx='30' cy='30' r='15' fill='%2348cc6c' opacity='0.7'/%3E%3Ccircle cx='70' cy='20' r='20' fill='%2348cc6c' opacity='0.6'/%3E%3Cpath d='M0 100c10-30 30-50 50-50s40 20 50 50' fill='%2368d391' opacity='0.8'/%3E%3C/svg%3E")`
-        }}
-      >
-        {/* Layered Forest Elements */}
-        <div className="absolute inset-0">
-          {/* Background Trees */}
-          <div className="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-t from-green-400 via-green-300 to-transparent opacity-70"></div>
-          
-          {/* Winding River */}
-          <div className="absolute bottom-0 left-1/4 w-1/2 h-1/3">
-            <div className="w-full h-full bg-gradient-to-r from-blue-300 via-cyan-200 to-blue-300 rounded-t-full opacity-80 transform rotate-12"></div>
-          </div>
-          
-          {/* Tree Silhouettes */}
-          <div className="absolute bottom-0 left-1/6 w-8 h-32 bg-green-600 opacity-60 rounded-t-full"></div>
-          <div className="absolute bottom-0 right-1/6 w-10 h-40 bg-green-700 opacity-50 rounded-t-full"></div>
-          <div className="absolute bottom-0 left-1/3 w-6 h-24 bg-green-800 opacity-70 rounded-t-full"></div>
-          
-          {/* Soft Light Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-yellow-100 via-transparent to-transparent opacity-30"></div>
-        </div>
-      </div>
-      
-      {/* Floating Sign-in Card */}
-      <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-xl w-full max-w-sm border border-white/20 transform hover:scale-105 transition-all duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-stone-50 flex items-center justify-center p-6">
+      {/* Sign-in Card */}
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm border border-stone-200 transform hover:scale-105 transition-all duration-300">
 
         {/* Back button */}
         {onBack && (
           <button
             onClick={onBack}
-            className="absolute -top-4 -left-4 bg-white/90 border border-stone-200 rounded-full p-2 shadow hover:shadow-md transition-all"
+            className="absolute -top-4 -left-4 bg-white border border-stone-200 rounded-full p-2 shadow hover:shadow-md transition-all"
             aria-label="Back"
           >
             ‹
@@ -105,7 +78,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBack }) => {
         
         {/* Nature-inspired header */}
         <div className="text-center mb-8">
-          <div className="text-4xl mb-4 animate-pulse">�</div>
+          <div className="text-4xl mb-4">🌿</div>
           <h2 className="text-2xl font-bold text-stone-900 font-serif">
             {authMode === 'login' ? 'Welcome back to your journey' : 'Begin your path'}
           </h2>
