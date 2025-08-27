@@ -5,9 +5,10 @@ import { User } from '../types';
 
 interface AuthScreenProps {
   onAuthSuccess: (user: User) => void;
+  onBack?: () => void;
 }
 
-const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
+const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBack }) => {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -90,6 +91,17 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
       
       {/* Floating Sign-in Card */}
       <div className="relative bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-xl w-full max-w-sm border border-white/20 transform hover:scale-105 transition-all duration-300">
+
+        {/* Back button */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="absolute -top-4 -left-4 bg-white/90 border border-stone-200 rounded-full p-2 shadow hover:shadow-md transition-all"
+            aria-label="Back"
+          >
+            ‹
+          </button>
+        )}
         
         {/* Nature-inspired header */}
         <div className="text-center mb-8">

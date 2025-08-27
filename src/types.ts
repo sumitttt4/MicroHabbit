@@ -1,14 +1,14 @@
 // User related types
 export interface User {
-  id: string;
-  name: string;
+  id: string | number;
+  name?: string;
   email: string;
   avatar?: string;
   isPremium: boolean;
-  joinDate: string;
+  joinDate?: string;
   preferences?: {
-    theme: string;
-    notifications: boolean;
+    theme?: string;
+    notifications?: boolean;
     [key: string]: any;
   };
 }
@@ -31,17 +31,21 @@ export interface Habit {
 
 export interface HabitProgress {
   habitId: string;
-  streak: number;
+  streak?: number;
   currentStreak: number;
   longestStreak: number;
   completedToday: boolean;
   completedDates: string[];
-  lastCompleted?: string;
+  // keep name consistent with codebase
+  lastCompletedDate?: string;
 }
 
 // Notification related types
 export interface NotificationSettings {
   enabled: boolean;
+  dailyReminder: boolean;
+  streakReminder: boolean;
+  motivationalMessage: boolean;
   reminderTime: string;
   sound: boolean;
   vibration: boolean;
@@ -51,19 +55,22 @@ export interface NotificationSettings {
 
 // Theme related types
 export interface Theme {
-  name: string;
-  primaryColor: string;
-  secondaryColor: string;
-  textColor: string;
-  backgroundColor: string;
+  // friendly labels (optional for backward compatibility)
+  name?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  textColor?: string;
+  backgroundColor?: string;
   cardBg?: string;
   accentColor?: string;
   darkMode?: boolean;
-  // Adding properties that are used in App.tsx
+
+  // minimal css-class style theme keys used across the app
   bg: string;
-  primary: string;
-  text: string;
   card: string;
+  primary: string;
+  primaryHover: string;
+  text: string;
   textSecondary: string;
 }
 

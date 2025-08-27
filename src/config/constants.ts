@@ -56,8 +56,13 @@ export const DEFAULT_NOTIFICATIONS = {
   dailyReminder: true,
   streakReminder: true,
   motivationalMessage: false,
-  reminderTime: '09:00'
+  reminderTime: '09:00',
+  sound: true,
+  vibration: true,
+  dailySummary: false,
+  milestones: true
 };
+
 
 // App configuration
 export const APP_CONFIG = {

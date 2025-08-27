@@ -9,7 +9,7 @@ class AuthService {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({ 
-          id: 1, 
+          id: '1', 
           email, 
           isPremium: false 
         });
@@ -25,7 +25,7 @@ class AuthService {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({ 
-          id: 1, 
+          id: '1', 
           email: 'user@gmail.com', 
           isPremium: false 
         });
@@ -41,7 +41,7 @@ class AuthService {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({ 
-          id: 1, 
+          id: '1', 
           email, 
           isPremium: false 
         });

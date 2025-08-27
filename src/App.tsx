@@ -278,7 +278,7 @@ const App: React.FC = () => {
     return (
       <ErrorBoundary>
         <LoadingOverlay isLoading={isLoading} message="Signing in...">
-          <AuthScreen onAuthSuccess={handleAuthSuccess} />
+          <AuthScreen onAuthSuccess={handleAuthSuccess} onBack={() => setCurrentView('splash')} />
         </LoadingOverlay>
       </ErrorBoundary>
     );
@@ -349,7 +349,7 @@ const App: React.FC = () => {
             />
 
             {/* Tabs */}
-            <div className="flex mb-6 bg-white dark:bg-gray-800 rounded-2xl p-1 shadow-lg">
+            <div className="flex mb-6 bg-white rounded-2xl p-1 shadow-lg border border-stone-200">
               {[
                 { key: 'dashboard', icon: Home, label: 'Habits' },
                 { key: 'garden', icon: Sprout, label: 'Garden' },
@@ -360,10 +360,10 @@ const App: React.FC = () => {
                 <button
                   key={key}
                   onClick={() => setActiveTab(key as any)}
-                  className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all duration-300 ${
+                  className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all duration-300 border-none ${
                     activeTab === key
                       ? `${currentTheme.primary} text-white shadow-lg transform scale-105`
-                      : `${currentTheme.text} hover:bg-gray-100 dark:hover:bg-gray-700`
+                      : `${currentTheme.text} hover:bg-stone-100`
                   }`}
                 >
                   <Icon className="w-4 h-4" />
