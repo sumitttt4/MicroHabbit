@@ -1,11 +1,14 @@
 import React from 'react';
-import { TrendingUp, Award, Sprout, TreePine } from 'lucide-react';
+import { Sprout, Award, TrendingUp } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { cn } from '../lib/utils';
 
+// Removed theme prop as we use Shadcn/Tailwind classes
 interface GardenViewProps {
   habits: string[];
   streaks: Record<number, number>;
   completedToday: Record<number, boolean>;
-  theme: any;
+  theme?: any;
 }
 
 interface PlantInfo {
@@ -20,227 +23,126 @@ const GardenView: React.FC<GardenViewProps> = ({
   habits,
   streaks,
   completedToday,
-  theme
 }) => {
   const getPlantInfo = (streak: number): PlantInfo => {
     if (streak >= 100) {
-      return {
-        emoji: '🌳',
-        name: 'Ancient Oak',
-        description: 'A legendary tree that has weathered 100+ days',
-        size: 'xlarge',
-        rarity: 'legendary'
-      };
+      return { emoji: '🌳', name: 'Ancient Oak', description: 'Legendary (100+ days)', size: 'xlarge', rarity: 'legendary' };
     } else if (streak >= 50) {
-      return {
-        emoji: '🌲',
-        name: 'Evergreen Pine',
-        description: 'A majestic tree standing tall and proud',
-        size: 'large',
-        rarity: 'epic'
-      };
+      return { emoji: '🌲', name: 'Evergreen Pine', description: 'Epic (50+ days)', size: 'large', rarity: 'epic' };
     } else if (streak >= 30) {
-      return {
-        emoji: '🌵',
-        name: 'Desert Warrior',
-        description: 'Resilient and enduring through challenges',
-        size: 'large',
-        rarity: 'rare'
-      };
+      return { emoji: '🌵', name: 'Desert Warrior', description: 'Rare (30+ days)', size: 'large', rarity: 'rare' };
     } else if (streak >= 15) {
-      return {
-        emoji: '🌻',
-        name: 'Sunflower',
-        description: 'Bright and cheerful, always reaching for the sun',
-        size: 'medium',
-        rarity: 'rare'
-      };
+      return { emoji: '🌻', name: 'Sunflower', description: 'Rare (15+ days)', size: 'medium', rarity: 'rare' };
     } else if (streak >= 7) {
-      return {
-        emoji: '🌿',
-        name: 'Lucky Clover',
-        description: 'A symbol of good fortune and persistence',
-        size: 'medium',
-        rarity: 'common'
-      };
+      return { emoji: '🌿', name: 'Lucky Clover', description: 'Common (7+ days)', size: 'medium', rarity: 'common' };
     } else if (streak >= 3) {
-      return {
-        emoji: '🌱',
-        name: 'Young Sprout',
-        description: 'Fresh and full of potential',
-        size: 'small',
-        rarity: 'common'
-      };
+      return { emoji: '🌱', name: 'Young Sprout', description: 'Common (3+ days)', size: 'small', rarity: 'common' };
     } else {
-      return {
-        emoji: '🌾',
-        name: 'Seed',
-        description: 'Just beginning the journey',
-        size: 'small',
-        rarity: 'common'
-      };
+      return { emoji: '🌾', name: 'Seed', description: 'Beginner', size: 'small', rarity: 'common' };
     }
   };
 
   const getPlantSize = (size: string) => {
     switch (size) {
-      case 'xlarge': return 'text-8xl';
+      case 'xlarge': return 'text-7xl';
       case 'large': return 'text-6xl';
-      case 'medium': return 'text-4xl';
-      case 'small': return 'text-2xl';
-      default: return 'text-2xl';
+      case 'medium': return 'text-5xl';
+      case 'small': return 'text-4xl';
+      default: return 'text-3xl';
     }
   };
 
-  const getRarityColor = (rarity: string) => {
+  // Minimal rarity colors (badges) using Shadcn utility classes
+  const getRarityBadge = (rarity: string) => {
     switch (rarity) {
-      case 'legendary': return 'from-purple-500 via-pink-500 to-yellow-500';
-      case 'epic': return 'from-purple-500 to-blue-500';
-      case 'rare': return 'from-blue-500 to-green-500';
-      case 'common': return 'from-green-400 to-green-600';
-      default: return 'from-gray-400 to-gray-600';
+      case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'epic': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'rare': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'common': return 'bg-green-100 text-green-800 border-green-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
+  // Just counts for stats
   const totalPlants = habits.length;
+  // Mature = streak >= 7
   const maturePlants = Object.values(streaks).filter(streak => streak >= 7).length;
-  const rarePlants = Object.values(streaks).filter(streak => streak >= 15).length;
 
   return (
-    <div className="space-y-6">
-      {/* Garden Stats */}
-      <div className={`${theme.card} p-6 rounded-2xl shadow-lg`}>
-        <div className="flex items-center gap-3 mb-4">
-          <Sprout className="text-green-500" size={24} />
-          <h2 className={`text-xl font-bold ${theme.text}`}>Your Habit Garden</h2>
-        </div>
-        
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-2xl font-bold text-green-500">{totalPlants}</div>
-            <div className={`text-sm ${theme.textSecondary}`}>Total Plants</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-blue-500">{maturePlants}</div>
-            <div className={`text-sm ${theme.textSecondary}`}>Mature Plants</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-purple-500">{rarePlants}</div>
-            <div className={`text-sm ${theme.textSecondary}`}>Rare Plants</div>
-          </div>
-        </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+
+      {/* Stats Header */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="py-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Plants</CardTitle>
+            <div className="text-3xl font-bold font-serif">{totalPlants}</div>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="py-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Mature Plants</CardTitle>
+            <div className="text-3xl font-bold font-serif">{maturePlants}</div>
+          </CardHeader>
+        </Card>
       </div>
 
       {/* Garden Grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <h2 className="text-xl font-serif font-semibold mt-8 mb-4">Your Garden</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {habits.map((habit, index) => {
           const streak = streaks[index] || 0;
           const isCompleted = completedToday[index] || false;
           const plant = getPlantInfo(streak);
-          
+
           return (
-            <div
-              key={index}
-              className={`relative ${theme.card} p-6 rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl overflow-hidden`}
-            >
-              {/* Rarity background glow */}
-              <div 
-                className={`absolute inset-0 opacity-10 bg-gradient-to-br ${getRarityColor(plant.rarity)}`}
-              ></div>
-              
-              {/* Completion glow for today */}
-              {isCompleted && (
-                <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-yellow-400/20 animate-pulse"></div>
-              )}
-              
-              <div className="relative z-10 text-center">
-                {/* Plant with animation */}
-                <div 
-                  className={`${getPlantSize(plant.size)} mb-3 transition-all duration-500 ${
-                    streak > 0 ? 'filter brightness-110' : ''
-                  }`}
-                  style={{ 
-                    animation: streak > 0 ? 'plantBreathe 10s ease-in-out infinite' : 'none'
-                  }}
-                >
+            <Card key={index} className={cn(
+              "relative overflow-hidden transition-all duration-300 hover:shadow-md border-border/60",
+              isCompleted ? "bg-muted/30" : "bg-card"
+            )}>
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center space-y-3">
+                <div className={cn(
+                  "transition-all duration-700",
+                  getPlantSize(plant.size),
+                  streak > 0 && "animate-in zoom-in spin-in-[5deg] duration-1000",
+                  isCompleted && "scale-110 drop-shadow-sm"
+                )}>
                   {plant.emoji}
                 </div>
-                
-                {/* Plant info */}
-                <h3 className={`font-semibold ${theme.text} mb-1`}>{plant.name}</h3>
-                <p className={`text-xs ${theme.textSecondary} mb-2`}>{plant.description}</p>
-                
-                {/* Habit name */}
-                <div className={`text-sm font-medium ${theme.text} mb-2 truncate`}>
-                  {habit}
+
+                <div className="space-y-1">
+                  <h3 className="font-medium text-foreground text-sm line-clamp-1">{habit}</h3>
+                  <p className="text-xs text-muted-foreground">{plant.name}</p>
                 </div>
-                
-                {/* Streak info */}
-                <div className="flex items-center justify-center gap-2">
-                  <TrendingUp className={`w-3 h-3 ${streak > 0 ? 'text-green-500' : theme.textSecondary}`} />
-                  <span className={`text-xs font-medium ${streak > 0 ? 'text-green-500' : theme.textSecondary}`}>
-                    {streak} days
-                  </span>
-                </div>
-                
-                {/* Rarity badge */}
-                {plant.rarity !== 'common' && (
-                  <div className={`inline-flex items-center gap-1 px-2 py-1 mt-2 rounded-full text-xs font-bold bg-gradient-to-r ${getRarityColor(plant.rarity)} text-white`}>
-                    <Award className="w-3 h-3" />
-                    {plant.rarity.charAt(0).toUpperCase() + plant.rarity.slice(1)}
-                  </div>
-                )}
+
+                <span className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border",
+                  getRarityBadge(plant.rarity)
+                )}>
+                  {plant.rarity}
+                </span>
+              </CardContent>
+
+              {/* Minimal streak indicator at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted">
+                <div
+                  className="h-full bg-primary/50"
+                  style={{ width: `${Math.min(streak, 100)}%`, transition: 'width 1s ease-in-out' }}
+                />
               </div>
-            </div>
+            </Card>
           );
         })}
-        
-        {/* Add new habit placeholder */}
-        <div className={`${theme.card} p-6 rounded-2xl shadow-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-center transition-all duration-300 hover:border-green-400`}>
-          <div className="text-4xl mb-2">🌱</div>
-          <div className={`text-sm font-medium ${theme.textSecondary}`}>
-            Plant a new habit
-          </div>
-          <div className={`text-xs ${theme.textSecondary} mt-1`}>
-            Add more plants to your garden
-          </div>
-        </div>
+
+        {/* Placeholder for new habits */}
+        {habits.length < 9 && (
+          <Card className="border-dashed flex flex-col items-center justify-center p-6 text-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20 transition-colors cursor-default">
+            <Sprout className="w-8 h-8 mb-2 opacity-50" />
+            <span className="text-xs">New Spot</span>
+          </Card>
+        )}
       </div>
 
-      {/* Milestone achievements */}
-      <div className={`${theme.card} p-6 rounded-2xl shadow-lg`}>
-        <div className="flex items-center gap-3 mb-4">
-          <Award className="text-yellow-500" size={24} />
-          <h3 className={`text-lg font-bold ${theme.text}`}>Garden Milestones</h3>
-        </div>
-        
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className={theme.textSecondary}>First Sprout (3 days)</span>
-            <span className="text-2xl">🌱</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className={theme.textSecondary}>Lucky Clover (7 days)</span>
-            <span className="text-2xl">🌿</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className={theme.textSecondary}>Bright Sunflower (15 days)</span>
-            <span className="text-2xl">🌻</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className={theme.textSecondary}>Desert Warrior (30 days)</span>
-            <span className="text-2xl">🌵</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className={theme.textSecondary}>Evergreen Pine (50 days)</span>
-            <span className="text-2xl">🌲</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className={theme.textSecondary}>Ancient Oak (100 days)</span>
-            <span className="text-2xl">🌳</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

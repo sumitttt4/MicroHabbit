@@ -1,8 +1,11 @@
 import React from 'react';
 import HabitCard from './HabitCard';
-import PremiumCTA from './PremiumCTA';
 import { User } from '../types';
 import { celebrateCompletion } from '../utils/helpers';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+import { Separator } from './ui/separator'; // Need to create if not exists
+import { cn } from '../lib/utils';
+import { ArrowUpRight } from 'lucide-react';
 
 interface DashboardProps {
   user: User | null;
@@ -20,14 +23,10 @@ const Dashboard: React.FC<DashboardProps> = ({
   habits,
   completedToday,
   streaks,
-  lastCompletedDate,
-  theme,
   onCompleteHabit,
-  onUpgradeToPremium,
 }) => {
   const handleCompleteHabit = (index: number) => {
-    if (completedToday[index]) return; // Already completed today
-
+    if (completedToday[index]) return;
     onCompleteHabit(index);
     celebrateCompletion(index);
   };
@@ -36,39 +35,51 @@ const Dashboard: React.FC<DashboardProps> = ({
   const totalStreaks = Object.values(streaks).reduce((sum, streak) => sum + streak, 0);
 
   return (
-    <div className="space-y-6">
-      {/* Habits */}
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+      {/* Welcome Section / Header could go here in parent, but this is content */}
+
+      {/* Habits List */}
       <div className="space-y-4">
-        {habits.map((habit, index) => (
-          <HabitCard
-            key={index}
-            habit={habit}
-            index={index}
-            isCompleted={completedToday[index] || false}
-            streak={streaks[index] || 0}
-            onComplete={handleCompleteHabit}
-            theme={theme}
-          />
-        ))}
-      </div>
-      
-      {/* Stats */}
-      <div className={`${theme.card} p-6 rounded-2xl shadow-lg`}>
-        <h3 className={`font-semibold ${theme.text} mb-4`}>Your Garden</h3>
-        <div className="grid grid-cols-2 gap-4 text-center">
-          <div>
-            <div className="text-2xl font-bold text-green-500">{totalStreaks}</div>
-            <div className={`text-sm ${theme.textSecondary}`}>Total Streaks</div>
+        {habits.length === 0 ? (
+          <div className="text-center py-10 text-muted-foreground">
+            <p>No habits yet. Start by adding one!</p>
           </div>
-          <div>
-            <div className="text-2xl font-bold text-blue-500">{completedCount}</div>
-            <div className={`text-sm ${theme.textSecondary}`}>Done Today</div>
-          </div>
-        </div>
+        ) : (
+          habits.map((habit, index) => (
+            <HabitCard
+              key={index}
+              habit={habit}
+              index={index}
+              isCompleted={completedToday[index] || false}
+              streak={streaks[index] || 0}
+              onComplete={handleCompleteHabit}
+            />
+          ))
+        )}
       </div>
-      
-      {/* Premium CTA */}
-      <PremiumCTA user={user} onUpgrade={onUpgradeToPremium} />
+
+      {/* Stats Summary - "Garden" */}
+      <Card className="border-border/40 shadow-sm bg-muted/20">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-serif tracking-tight flex items-center gap-2">
+            Your Progress
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-8">
+            <div className="flex flex-col gap-1">
+              <span className="text-3xl font-bold font-serif">{totalStreaks}</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Total Streak Days</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-3xl font-bold font-serif">{completedCount}</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Completed Today</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
     </div>
   );
 };

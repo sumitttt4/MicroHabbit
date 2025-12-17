@@ -10,23 +10,23 @@ export const AI_CONFIG = {
 // Plant growth stages
 export const PLANT_STAGES = ['🌱', '🌿', '🍀', '🌳', '🌲'];
 
-// Theme configurations - Minimal, warm, human-centered design
+// Theme configurations - Minimal, shadcn-compatible
 export const THEMES: Record<string, Theme> = {
   default: {
-    bg: 'bg-stone-50',
-    card: 'bg-white',
-    primary: 'bg-orange-500',
-    primaryHover: 'hover:bg-orange-600',
-    text: 'text-stone-900',
-    textSecondary: 'text-stone-600'
+    bg: 'bg-background',
+    card: 'bg-card',
+    primary: 'bg-primary',
+    primaryHover: 'hover:bg-primary/90',
+    text: 'text-foreground',
+    textSecondary: 'text-muted-foreground'
   },
   dark: {
-    bg: 'bg-stone-900',
-    card: 'bg-stone-800',
-    primary: 'bg-orange-500',
-    primaryHover: 'hover:bg-orange-600',
-    text: 'text-stone-100',
-    textSecondary: 'text-stone-400'
+    bg: 'bg-background',
+    card: 'bg-card',
+    primary: 'bg-primary',
+    primaryHover: 'hover:bg-primary/90',
+    text: 'text-foreground',
+    textSecondary: 'text-muted-foreground'
   }
 };
 
@@ -42,7 +42,7 @@ export const STORAGE_KEYS = {
   NOTIFICATIONS: 'microhabit_notifications',
   ANALYTICS: 'microhabit_analytics',
   APP_VERSION: 'microhabit_version',
-  
+
   // Legacy keys for migration
   LEGACY_HABITS: 'microhabit_habits',
   LEGACY_STREAKS: 'microhabit_streaks',

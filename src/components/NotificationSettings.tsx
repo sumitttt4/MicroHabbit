@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Clock, Zap, Volume2, VolumeX, CheckCircle } from 'lucide-react';
+import { Bell, Clock, Zap, Volume2, CheckCircle, AlertOctagon } from 'lucide-react';
 import { NotificationSettings } from '../types';
 import { notificationService } from '../services/notificationService';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from './ui/card';
+import { Switch } from './ui/switch';
+import { Label } from './ui/label';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert'; // Need to create Alert, or just use div with styles
 
 interface NotificationSettingsProps {
   settings: NotificationSettings;
   onUpdateSettings: (settings: NotificationSettings) => void;
-  theme: any;
+  theme?: any; // kept for compatibility in parent
 }
 
 const NotificationSettingsComponent: React.FC<NotificationSettingsProps> = ({
   settings,
   onUpdateSettings,
-  theme
 }) => {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [testNotificationSent, setTestNotificationSent] = useState(false);
@@ -24,9 +29,8 @@ const NotificationSettingsComponent: React.FC<NotificationSettingsProps> = ({
   const handleRequestPermission = async () => {
     const newPermission = await notificationService.requestPermission();
     setPermission(newPermission);
-    
+
     if (newPermission === 'granted') {
-      // Enable notifications in settings
       onUpdateSettings({
         ...settings,
         enabled: true
@@ -54,224 +58,155 @@ const NotificationSettingsComponent: React.FC<NotificationSettingsProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Permission Status */}
-      <div className={`${theme.cardBg || theme.card} p-6 rounded-2xl shadow-lg`}>
-        <div className="flex items-center gap-3 mb-4">
-          <Bell className="text-blue-500" size={24} />
-          <h3 className={`text-lg font-bold ${theme.textPrimary || theme.text}`}>
-            Notification Settings
-          </h3>
-        </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
 
-        {/* Permission Status */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <span className={`font-medium ${theme.textPrimary || theme.text}`}>
-              Browser Permissions
-            </span>
-            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-              permission === 'granted' 
-                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                : permission === 'denied'
-                ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-            }`}>
-              {permission === 'granted' ? '✓ Allowed' : 
-               permission === 'denied' ? '✗ Blocked' : '? Not Set'}
+      {/* Permission Status */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Bell className="w-5 h-5 text-primary" />
+            <CardTitle>Permissions</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-sm">Browser Permissions</span>
+            <div className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${permission === 'granted' ? 'bg-green-100 text-green-700' :
+                permission === 'denied' ? 'bg-red-100 text-red-700' :
+                  'bg-yellow-100 text-yellow-700'
+              }`}>
+              {permission === 'granted' ? 'Allowed' : permission === 'denied' ? 'Blocked' : 'Not Set'}
             </div>
           </div>
 
           {permission !== 'granted' && (
-            <div className="mb-4">
-              <button
-                onClick={handleRequestPermission}
-                className={`w-full py-3 px-4 rounded-lg ${theme.buttonPrimary || theme.primary} text-white font-medium transition-colors`}
-              >
-                {permission === 'denied' 
-                  ? 'Enable in Browser Settings' 
-                  : 'Enable Notifications'}
-              </button>
-              
+            <div className="space-y-2">
+              <Button onClick={handleRequestPermission} className="w-full" variant={permission === 'denied' ? 'destructive' : 'default'}>
+                {permission === 'denied' ? 'Enable in Browser Settings' : 'Request Permissions'}
+              </Button>
               {permission === 'denied' && (
-                <p className={`text-sm ${theme.textSecondary} mt-2`}>
-                  Notifications are blocked. Please enable them in your browser settings.
+                <p className="text-xs text-muted-foreground text-center">
+                  Please check your browser settings to allow notifications.
                 </p>
               )}
             </div>
           )}
 
           {permission === 'granted' && (
-            <button
+            <Button
               onClick={sendTestNotification}
+              variant="outline"
+              className="w-full"
               disabled={testNotificationSent}
-              className={`w-full py-2 px-4 rounded-lg border border-gray-300 dark:border-gray-600 transition-colors ${
-                testNotificationSent 
-                  ? 'bg-green-50 text-green-700 border-green-300 dark:bg-green-900/20 dark:text-green-300'
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-              }`}
             >
-              {testNotificationSent ? (
-                <span className="flex items-center justify-center gap-2">
-                  <CheckCircle className="w-4 h-4" />
-                  Test Sent!
-                </span>
-              ) : (
-                'Send Test Notification'
-              )}
-            </button>
+              {testNotificationSent ? <><CheckCircle className="w-4 h-4 mr-2" /> Sent!</> : 'Send Test Notification'}
+            </Button>
           )}
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Master Toggle */}
-        <div className="flex items-center justify-between mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-          <div className="flex items-center gap-3">
-            {settings.enabled ? (
-              <Volume2 className="text-green-500" size={20} />
-            ) : (
-              <VolumeX className="text-gray-400" size={20} />
-            )}
-            <div>
-              <div className={`font-medium ${theme.textPrimary || theme.text}`}>
-                Enable Notifications
-              </div>
-              <div className={`text-sm ${theme.textSecondary}`}>
-                Master switch for all notification types
-              </div>
+      {/* Settings List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Preferences</CardTitle>
+          <CardDescription>Manage when and how you want to be notified.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+
+          {/* Master Toggle */}
+          <div className="flex items-center justify-between space-x-2">
+            <div className="flex flex-col space-y-1">
+              <Label htmlFor="notifications-enable">Enable Notifications</Label>
+              <span className="text-xs text-muted-foreground">Turn on/off all notifications</span>
             </div>
-          </div>
-          
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
+            <Switch
+              id="notifications-enable"
               checked={settings.enabled && permission === 'granted'}
-              onChange={(e) => handleSettingChange('enabled', e.target.checked)}
+              onCheckedChange={(checked) => handleSettingChange('enabled', checked)}
               disabled={permission !== 'granted'}
-              className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-          </label>
-        </div>
+          </div>
 
-        {/* Individual Settings */}
-        <div className="space-y-4">
-          {/* Daily Reminders */}
-          <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-xl">
-            <div className="flex items-center gap-3">
-              <Clock className={`${settings.dailyReminder ? 'text-blue-500' : 'text-gray-400'}`} size={20} />
-              <div>
-                <div className={`font-medium ${theme.textPrimary || theme.text}`}>
-                  Daily Reminders
-                </div>
-                <div className={`text-sm ${theme.textSecondary}`}>
-                  Get reminded about incomplete habits
+          <div className="space-y-4 pt-4 border-t">
+            {/* Daily */}
+            <div className="flex items-center justify-between space-x-2">
+              <div className="flex items-center space-x-4">
+                <Clock className="w-5 h-5 text-muted-foreground" />
+                <div className="flex flex-col space-y-1">
+                  <Label htmlFor="daily-reminder">Daily Reminders</Label>
+                  <span className="text-xs text-muted-foreground">Get reminded about incomplete habits</span>
                 </div>
               </div>
-            </div>
-            
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
+              <Switch
+                id="daily-reminder"
                 checked={settings.dailyReminder}
-                onChange={(e) => handleSettingChange('dailyReminder', e.target.checked)}
+                onCheckedChange={(checked) => handleSettingChange('dailyReminder', checked)}
                 disabled={!settings.enabled}
-                className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
+            </div>
 
-          {/* Streak Protection */}
-          <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-xl">
-            <div className="flex items-center gap-3">
-              <Zap className={`${settings.streakReminder ? 'text-orange-500' : 'text-gray-400'}`} size={20} />
-              <div>
-                <div className={`font-medium ${theme.textPrimary || theme.text}`}>
-                  Streak Protection
-                </div>
-                <div className={`text-sm ${theme.textSecondary}`}>
-                  Don't let your streaks break!
+            {/* Streak */}
+            <div className="flex items-center justify-between space-x-2">
+              <div className="flex items-center space-x-4">
+                <Zap className="w-5 h-5 text-muted-foreground" />
+                <div className="flex flex-col space-y-1">
+                  <Label htmlFor="streak-protection">Streak Protection</Label>
+                  <span className="text-xs text-muted-foreground">Alerts before you lose a streak</span>
                 </div>
               </div>
-            </div>
-            
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
+              <Switch
+                id="streak-protection"
                 checked={settings.streakReminder}
-                onChange={(e) => handleSettingChange('streakReminder', e.target.checked)}
+                onCheckedChange={(checked) => handleSettingChange('streakReminder', checked)}
                 disabled={!settings.enabled}
-                className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
+            </div>
 
-          {/* Motivational Messages */}
-          <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-xl">
-            <div className="flex items-center gap-3">
-              <Bell className={`${settings.motivationalMessage ? 'text-purple-500' : 'text-gray-400'}`} size={20} />
-              <div>
-                <div className={`font-medium ${theme.textPrimary || theme.text}`}>
-                  Motivational Messages
-                </div>
-                <div className={`text-sm ${theme.textSecondary}`}>
-                  Inspirational quotes and tips
+            {/* Motivation */}
+            <div className="flex items-center justify-between space-x-2">
+              <div className="flex items-center space-x-4">
+                <Bell className="w-5 h-5 text-muted-foreground" />
+                <div className="flex flex-col space-y-1">
+                  <Label htmlFor="motivation">Motivational Messages</Label>
+                  <span className="text-xs text-muted-foreground">Occasional boosts of motivation</span>
                 </div>
               </div>
-            </div>
-            
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
+              <Switch
+                id="motivation"
                 checked={settings.motivationalMessage}
-                onChange={(e) => handleSettingChange('motivationalMessage', e.target.checked)}
+                onCheckedChange={(checked) => handleSettingChange('motivationalMessage', checked)}
                 disabled={!settings.enabled}
-                className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
+            </div>
 
-          {/* Reminder Time */}
-          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-xl">
-            <div className="flex items-center gap-3 mb-3">
-              <Clock className="text-green-500" size={20} />
-              <div>
-                <div className={`font-medium ${theme.textPrimary || theme.text}`}>
-                  Reminder Time
-                </div>
-                <div className={`text-sm ${theme.textSecondary}`}>
-                  When to send daily notifications
-                </div>
+            {/* Time Picker */}
+            <div className="pt-2">
+              <Label className="mb-2 block">Reminder Time</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="time"
+                  value={settings.reminderTime}
+                  onChange={(e) => handleSettingChange('reminderTime', e.target.value)}
+                  disabled={!settings.enabled || !settings.dailyReminder}
+                  className="w-full max-w-[200px]"
+                />
               </div>
             </div>
-            
-            <input
-              type="time"
-              value={settings.reminderTime}
-              onChange={(e) => handleSettingChange('reminderTime', e.target.value)}
-              disabled={!settings.enabled || !settings.dailyReminder}
-              className={`w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                !settings.enabled || !settings.dailyReminder ? 'opacity-50 cursor-not-allowed' : ''
-              } ${theme.cardBg || 'bg-white dark:bg-gray-800'}`}
-            />
-          </div>
-        </div>
 
-        {/* Help Text */}
-        <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-          <div className={`text-sm ${theme.textPrimary || theme.text} font-medium mb-2`}>
-            💡 Notification Tips:
           </div>
-          <ul className={`text-sm ${theme.textSecondary} space-y-1`}>
-            <li>• Notifications work best when the app is open in a tab</li>
-            <li>• Daily reminders help maintain consistency</li>
-            <li>• Streak protection prevents long streaks from breaking</li>
-            <li>• You can always disable specific notification types</li>
-          </ul>
+
+        </CardContent>
+      </Card>
+
+      {/* Tips */}
+      <div className="bg-primary/5 p-4 rounded-lg flex gap-3 text-sm text-primary/80">
+        <AlertOctagon className="w-5 h-5 shrink-0" />
+        <div>
+          <p className="font-semibold mb-1">Did you know?</p>
+          <p>Notifications are most effective when set for a time you're usually free, like in the morning or just after work.</p>
         </div>
       </div>
+
     </div>
   );
 };

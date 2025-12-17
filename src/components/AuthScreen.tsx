@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { authService } from '../services/authService';
 import { User } from '../types';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { Label } from '../components/ui/label'; // I'll need to create this or just use standard label
+import { cn } from '../lib/utils';
+
+// Simple Label component if I don't create a separate file
+const SimpleLabel = ({ children, className, htmlFor }: { children: React.ReactNode, className?: string, htmlFor?: string }) => (
+  <label htmlFor={htmlFor} className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", className)}>
+    {children}
+  </label>
+);
 
 interface AuthScreenProps {
   onAuthSuccess: (user: User) => void;
@@ -19,24 +31,24 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBack }) => {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (!authService.validateEmail(email)) {
       setError('Please enter a valid email');
       return;
     }
-    
+
     if (!authService.validatePassword(password)) {
       setError('Password must be at least 6 characters');
       return;
     }
 
     setLoading(true);
-    
+
     try {
-      const userData = authMode === 'login' 
+      const userData = authMode === 'login'
         ? await authService.login(email, password)
         : await authService.register(email, password);
-      
+
       onAuthSuccess(userData);
     } catch (error) {
       console.error('Auth error:', error);
@@ -46,100 +58,94 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBack }) => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const userData = await authService.loginWithGoogle();
-      onAuthSuccess(userData);
-    } catch (error) {
-      console.error('Google login error:', error);
-      setError('Google login failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-stone-50 flex items-center justify-center p-6">
-      {/* Sign-in Card */}
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm border border-stone-200 transform hover:scale-105 transition-all duration-300">
-
-        {/* Back button */}
+    <div className="min-h-screen w-full flex items-center justify-center bg-background p-4 animate-in fade-in duration-500">
+      <div className="w-full max-w-md space-y-4">
         {onBack && (
-          <button
-            onClick={onBack}
-            className="absolute -top-4 -left-4 bg-white border border-stone-200 rounded-full p-2 shadow hover:shadow-md transition-all"
-            aria-label="Back"
-          >
-            ‹
-          </button>
+          <Button variant="ghost" size="sm" onClick={onBack} className="mb-4 pl-0 hover:bg-transparent hover:text-primary">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+          </Button>
         )}
-        
-        {/* Nature-inspired header */}
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-4">🌿</div>
-          <h2 className="text-2xl font-bold text-stone-900 font-serif">
-            {authMode === 'login' ? 'Welcome back to your journey' : 'Begin your path'}
-          </h2>
-          <p className="text-stone-600 mt-2">
-            {authMode === 'login' ? 'Ready to nurture your habits?' : 'Let your habits grow naturally'}
-          </p>
-        </div>
-        
-        <form onSubmit={handleAuth} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-4 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-stone-900 placeholder-stone-500"
-            required
-          />
-          
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-4 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-stone-900 placeholder-stone-500 pr-12"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-4 text-stone-400 hover:text-stone-600 transition-colors"
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-          
-          {error && (
-            <div className="text-red-500 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
-              {error}
+
+        <Card className="border-border/40 shadow-sm">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-serif tracking-tight">
+              {authMode === 'login' ? 'Welcome back' : 'Create an account'}
+            </CardTitle>
+            <CardDescription>
+              {authMode === 'login'
+                ? 'Enter your email to sign in to your account'
+                : 'Enter your email below to create your account'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <form onSubmit={handleAuth} className="space-y-4">
+              <div className="grid gap-2">
+                <SimpleLabel htmlFor="email">Email</SimpleLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <SimpleLabel htmlFor="password">Password</SimpleLabel>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {error && (
+                <div className="text-sm font-medium text-destructive">
+                  {error}
+                </div>
+              )}
+
+              <Button className="w-full font-sans" type="submit" disabled={loading}>
+                {loading && (
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                )}
+                {authMode === 'login' ? 'Sign In' : 'Sign Up'}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter>
+            <div className="text-sm text-muted-foreground text-center w-full">
+              {authMode === 'login' ? "Don't have an account? " : "Already have an account? "}
+              <button
+                type="button"
+                className="underline underline-offset-4 hover:text-primary transition-colors"
+                onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+              >
+                {authMode === 'login' ? 'Sign up' : 'Sign in'}
+              </button>
             </div>
-          )}
-          
-          <button
-            type="submit"
-            disabled={loading || !email || !password}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
-          >
-            {loading ? 'Loading...' : (authMode === 'login' ? 'Sign in' : 'Create account')}
-          </button>
-        </form>
-        
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-            className="text-orange-600 hover:text-orange-700 font-medium transition-colors"
-          >
-            {authMode === 'login' 
-              ? "Don't have an account? Sign up" 
-              : "Already have an account? Sign in"}
-          </button>
-        </div>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );

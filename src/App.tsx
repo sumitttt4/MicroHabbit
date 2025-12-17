@@ -11,6 +11,7 @@ import SocialSharing from './components/SocialSharing';
 import SettingsScreen from './components/SettingsScreen';
 import HabitEditor from './components/HabitEditor';
 import NotificationSettings from './components/NotificationSettings';
+import JournalScreen from './components/JournalScreen'; // Import JournalScreen
 import ErrorBoundary from './components/ErrorBoundary';
 import { LoadingOverlay } from './components/LoadingComponents';
 import { useEnhancedLocalStorage } from './hooks/useEnhancedLocalStorage';
@@ -20,14 +21,16 @@ import { User, Habit } from './types';
 import { authService } from './services/authService';
 import { notificationService } from './services/notificationService';
 import { checkNewDay } from './utils/helpers';
-import { Home, Sprout, Calendar, BarChart3, Share2, Settings, Plus } from 'lucide-react';
+import { Home, Sprout, Calendar, BarChart3, Share2, Settings, Plus, Book, BookOpen } from 'lucide-react';
+
+import PhoneFrame from './components/PhoneFrame';
 
 // ✅ Correct type export (isolatedModules safe)
 export type ViewType = 'splash' | 'auth' | 'onboarding' | 'dashboard' | 'settings';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('splash');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'garden' | 'calendar' | 'analytics' | 'social'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'garden' | 'calendar' | 'analytics' | 'social' | 'journal'>('dashboard');
   const [showHabitEditor, setShowHabitEditor] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +53,6 @@ const App: React.FC = () => {
     resetDailyProgress,
     clearAllData,
     exportData,
-    importData,
     completedToday,
     streaks,
     lastCompletedDate
@@ -111,6 +113,19 @@ const App: React.FC = () => {
     }
   }, [user, habits.length, notifications, habitProgress, resetDailyProgress, loadWeeklyInsight, generateAIMessage]);
 
+  // Theme management using class-based Dark mode (Shadcn style)
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+
+    // If theme is dark, or system is dark and theme is system (not handled here but good practice)
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.add('light');
+    }
+  }, [theme]);
+
   // Auth handlers
   const handleAuthSuccess = (userData: User) => {
     updateUser(userData);
@@ -166,11 +181,6 @@ const App: React.FC = () => {
     setEditingHabit(undefined);
   };
 
-  const handleEditHabit = (habit: Habit) => {
-    setEditingHabit(habit);
-    setShowHabitEditor(true);
-  };
-
   const handleDeleteHabit = (habitId: string) => {
     deleteHabit(habitId);
   };
@@ -202,18 +212,6 @@ const App: React.FC = () => {
           milestones[newStreak as keyof typeof milestones],
           `You've completed "${habit.name}" for ${newStreak} days straight!`
         );
-      }
-
-      if (user?.isPremium) {
-        setTimeout(() => {
-          const legacyStreaks = Object.fromEntries(
-            habits.map((h, index) => [index, habitProgress[h.id]?.currentStreak || 0])
-          );
-          const legacyCompleted = Object.fromEntries(
-            habits.map((h, index) => [index, habitProgress[h.id]?.completedToday || false])
-          );
-          generateAIMessage(habits.map(h => h.name), legacyStreaks, legacyCompleted, user.email.split('@')[0]);
-        }, 1000);
       }
     }
   };
@@ -262,7 +260,6 @@ const App: React.FC = () => {
     generateWeeklyInsight(weeklyData);
   };
 
-  const currentTheme = THEMES[theme];
   const completedCount = Object.values(completedToday || {}).filter(Boolean).length;
 
   // View rendering
@@ -277,9 +274,11 @@ const App: React.FC = () => {
   if (currentView === 'auth') {
     return (
       <ErrorBoundary>
-        <LoadingOverlay isLoading={isLoading} message="Signing in...">
-          <AuthScreen onAuthSuccess={handleAuthSuccess} onBack={() => setCurrentView('splash')} />
-        </LoadingOverlay>
+        <PhoneFrame>
+          <LoadingOverlay isLoading={isLoading} message="Signing in...">
+            <AuthScreen onAuthSuccess={handleAuthSuccess} onBack={() => setCurrentView('splash')} />
+          </LoadingOverlay>
+        </PhoneFrame>
       </ErrorBoundary>
     );
   }
@@ -287,55 +286,85 @@ const App: React.FC = () => {
   if (currentView === 'onboarding') {
     return (
       <ErrorBoundary>
-        <OnboardingScreen
-          onComplete={handleOnboardingComplete}
-          suggestedHabits={suggestedHabits}
-          onGenerateSuggestions={handleGenerateHabitSuggestions}
-          loadingAI={loadingAI}
-        />
-      </ErrorBoundary>
-    );
-  }
-
-  if (currentView === 'settings') {
-    return (
-      <ErrorBoundary>
-        <div className={`min-h-screen ${currentTheme.bg}`}>
-          <SettingsScreen
-            user={user}
-            theme={theme}
+        <PhoneFrame>
+          <OnboardingScreen
+            onComplete={handleOnboardingComplete}
             suggestedHabits={suggestedHabits}
+            onGenerateSuggestions={handleGenerateHabitSuggestions}
             loadingAI={loadingAI}
-            onClose={() => setCurrentView('dashboard')}
-            onThemeChange={updateTheme}
-            onUpgradeToPremium={handleUpgradeToPremium}
-            onLogout={handleLogout}
-            onGenerateAIMessage={handleGenerateAIMessage}
-            onGenerateHabitSuggestions={handleGenerateHabitSuggestions}
-            onGenerateWeeklyInsight={handleGenerateWeeklyInsight}
-            habits={habits.map(h => h.name)}
-            streaks={streaks}
-            completedToday={completedToday}
           />
-
-          <div className="max-w-md mx-auto p-4">
-            <NotificationSettings
-              settings={notifications}
-              onUpdateSettings={updateNotifications}
-              theme={currentTheme}
-            />
-          </div>
-        </div>
+        </PhoneFrame>
       </ErrorBoundary>
     );
   }
 
-  // Dashboard view
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <Dashboard
+          user={user}
+          habits={habits.map(h => h.name)}
+          completedToday={completedToday}
+          streaks={streaks}
+          lastCompletedDate={lastCompletedDate}
+          theme={theme}
+          onCompleteHabit={handleLegacyCompleteHabit}
+          onUpgradeToPremium={handleUpgradeToPremium}
+        />
+      case 'garden':
+        return <GardenView
+          habits={habits.map(h => h.name)}
+          streaks={streaks}
+          completedToday={completedToday}
+        />
+      case 'calendar':
+        return <CalendarView
+          habits={habits}
+          habitProgress={habitProgress}
+        />
+      case 'analytics':
+        return <AnalyticsDashboard
+          habits={habits}
+          habitProgress={habitProgress}
+        />
+      case 'social':
+        return <SocialSharing
+          habits={habits}
+          habitProgress={habitProgress}
+        />
+      case 'journal': // Existing
+        return <JournalScreen />
+      default:
+        return null;
+    }
+  }
+
   return (
     <ErrorBoundary>
-      <LoadingOverlay isLoading={isLoading} message="Loading your habits...">
-        <div className={`min-h-screen ${currentTheme.bg} p-4`}>
-          <div className="max-w-md mx-auto">
+      <PhoneFrame>
+        <div className="bg-background text-foreground transition-colors duration-300 min-h-full">
+
+          {currentView === 'settings' && (
+            <SettingsScreen
+              user={user}
+              theme={theme}
+              suggestedHabits={suggestedHabits}
+              loadingAI={loadingAI}
+              onClose={() => setCurrentView('dashboard')}
+              onThemeChange={updateTheme}
+              onUpgradeToPremium={handleUpgradeToPremium}
+              onLogout={handleLogout}
+              onGenerateAIMessage={handleGenerateAIMessage}
+              onGenerateHabitSuggestions={handleGenerateHabitSuggestions}
+              onGenerateWeeklyInsight={handleGenerateWeeklyInsight}
+              habits={habits.map(h => h.name)}
+              streaks={streaks}
+              completedToday={completedToday}
+            />
+          )}
+
+          <div className="p-4 pb-24">
+            {/* Header */}
             <DashboardHeader
               user={user}
               completedCount={completedCount}
@@ -343,113 +372,66 @@ const App: React.FC = () => {
               aiMessage={aiMessage}
               weeklyInsight={weeklyInsight}
               loadingAI={loadingAI}
-              theme={currentTheme}
               onSettingsClick={() => setCurrentView('settings')}
               onGenerateAIMessage={handleGenerateAIMessage}
             />
 
-            {/* Tabs */}
-            <div className="flex mb-6 bg-white rounded-2xl p-1 shadow-lg border border-stone-200">
-              {[
-                { key: 'dashboard', icon: Home, label: 'Habits' },
-                { key: 'garden', icon: Sprout, label: 'Garden' },
-                { key: 'calendar', icon: Calendar, label: 'Calendar' },
-                { key: 'analytics', icon: BarChart3, label: 'Stats' },
-                { key: 'social', icon: Share2, label: 'Share' }
-              ].map(({ key, icon: Icon, label }) => (
-                <button
-                  key={key}
-                  onClick={() => setActiveTab(key as any)}
-                  className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all duration-300 border-none ${
-                    activeTab === key
-                      ? `${currentTheme.primary} text-white shadow-lg transform scale-105`
-                      : `${currentTheme.text} hover:bg-stone-100`
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="text-xs font-medium">{label}</span>
-                </button>
-              ))}
-            </div>
+            {/* Content */}
+            {renderContent()}
 
+            {/* FAB for Adding Habits (Only on Dashboard) */}
             {activeTab === 'dashboard' && (
               <button
                 onClick={handleAddNewHabit}
-                className="fixed bottom-6 right-6 w-14 h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 z-40"
+                className="absolute bottom-24 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 z-40"
               >
                 <Plus className="w-6 h-6" />
               </button>
             )}
 
-            {/* Tab content */}
-            <div className="space-y-6">
-              {activeTab === 'dashboard' && (
-                <Dashboard
-                  user={user}
-                  habits={habits.map(h => h.name)}
-                  completedToday={completedToday}
-                  streaks={streaks}
-                  lastCompletedDate={lastCompletedDate}
-                  theme={currentTheme}
-                  onCompleteHabit={handleLegacyCompleteHabit}
-                  onUpgradeToPremium={handleUpgradeToPremium}
-                />
-              )}
-
-              {activeTab === 'garden' && (
-                <GardenView
-                  habits={habits.map(h => h.name)}
-                  streaks={streaks}
-                  completedToday={completedToday}
-                  theme={currentTheme}
-                />
-              )}
-
-              {activeTab === 'calendar' && (
-                <CalendarView
-                  habits={habits}
-                  habitProgress={habitProgress}
-                  theme={currentTheme}
-                  onDateClick={(date) => console.log('Date clicked:', date)}
-                />
-              )}
-
-              {activeTab === 'analytics' && (
-                <AnalyticsDashboard
-                  habits={habits}
-                  habitProgress={habitProgress}
-                  theme={currentTheme}
-                />
-              )}
-
-              {activeTab === 'social' && (
-                <SocialSharing
-                  habits={habits}
-                  habitProgress={habitProgress}
-                  theme={currentTheme}
-                />
-              )}
+            {/* Bottom Nav */}
+            <div className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border p-2 z-50 rounded-b-[2rem]">
+              <div className="flex justify-around items-center pb-2">
+                {[
+                  { key: 'dashboard', icon: Home, label: 'Home' },
+                  { key: 'garden', icon: Sprout, label: 'Garden' },
+                  { key: 'calendar', icon: Calendar, label: 'History' },
+                  { key: 'analytics', icon: BarChart3, label: 'Stats' },
+                  { key: 'journal', icon: BookOpen, label: 'Journal' }, // Added Journal
+                ].map(({ key, icon: Icon, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setActiveTab(key as any)}
+                    className={`flex flex-col items-center justify-center w-full py-2 transition-all ${activeTab === key ? 'text-primary scale-110' : 'text-muted-foreground hover:text-primary/70'
+                      }`}
+                  >
+                    <Icon className="w-5 h-5 mb-0.5" strokeWidth={activeTab === key ? 2.5 : 2} />
+                    <span className="text-[10px] font-medium">{label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Habit editor */}
-        <HabitEditor
-          habit={editingHabit}
-          isOpen={showHabitEditor}
-          onClose={() => {
-            setShowHabitEditor(false);
-            setEditingHabit(undefined);
-          }}
-          onSave={handleSaveHabit}
-          onDelete={handleDeleteHabit}
-          theme={currentTheme}
-        />
-      </LoadingOverlay>
+          </div>
+
+          {/* Modals */}
+          <HabitEditor
+            habit={editingHabit}
+            isOpen={showHabitEditor}
+            onClose={() => {
+              setShowHabitEditor(false);
+              setEditingHabit(undefined);
+            }}
+            onSave={handleSaveHabit}
+            onDelete={handleDeleteHabit}
+          />
+
+        </div>
+      </PhoneFrame>
     </ErrorBoundary>
   );
 };
 
 export default App;
 
-export {};
+export { };

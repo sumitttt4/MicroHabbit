@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
+import { Card, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { cn } from '../lib/utils';
 import { getPlantStage } from '../utils/helpers';
 
 interface HabitCardProps {
@@ -8,66 +11,27 @@ interface HabitCardProps {
   isCompleted: boolean;
   streak: number;
   onComplete: (index: number) => void;
-  theme: any;
+  theme?: any; // kept for compatibility but not strictly used for styling anymore
 }
 
-interface CelebrationParticle {
-  id: number;
-  emoji: string;
-  left: number;
-  top: number;
-  animationDelay: number;
-}
-
-const HabitCard: React.FC<HabitCardProps> = ({ 
-  habit, 
-  index, 
-  isCompleted, 
-  streak, 
-  onComplete, 
-  theme 
+const HabitCard: React.FC<HabitCardProps> = ({
+  habit,
+  index,
+  isCompleted,
+  streak,
+  onComplete
 }) => {
-  const [showCelebration, setShowCelebration] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [particles, setParticles] = useState<CelebrationParticle[]>([]);
-
-  // Generate celebration particles
-  const generateParticles = () => {
-    const emojis = ['🎉', '✨', '⭐', '🌟', '💫', '🎊', '🌸', '🌺'];
-    const newParticles: CelebrationParticle[] = [];
-    
-    for (let i = 0; i < 10; i++) {
-      newParticles.push({
-        id: i,
-        emoji: emojis[Math.floor(Math.random() * emojis.length)],
-        left: Math.random() * 80 + 10, // 10% to 90% from left
-        top: Math.random() * 60 + 20,  // 20% to 80% from top
-        animationDelay: Math.random() * 0.8
-      });
-    }
-    
-    setParticles(newParticles);
-  };
 
   const handleComplete = () => {
     if (isCompleted || isAnimating) return;
 
-    // Start celebration animation
     setIsAnimating(true);
-    generateParticles();
-    setShowCelebration(true);
-
-    // Complete the habit after animation starts
+    // Delay actual completion slightly for animation
     setTimeout(() => {
       onComplete(index);
-    }, 300);
-
-    // Clean up celebration
-    setTimeout(() => {
-      setShowCelebration(false);
       setIsAnimating(false);
-      setParticles([]);
-    }, 2500);
+    }, 500);
   };
 
   const getStreakEmoji = (streakCount: number) => {
@@ -75,112 +39,57 @@ const HabitCard: React.FC<HabitCardProps> = ({
     if (streakCount >= 30) return '🌵';
     if (streakCount >= 7) return '🌿';
     if (streakCount >= 3) return '🌱';
-    return '🌾';
+    return ''; // No emoji for low streaks to keep it minimal
   };
 
   return (
-    <div 
-      id={`habit-${index}`}
-      className={`relative overflow-hidden ${theme.card} p-6 rounded-2xl shadow-lg transition-all duration-300 ${
-        isAnimating ? 'transform scale-105 shadow-2xl' : 'hover:shadow-xl'
-      }`}
-    >
-      {/* Celebration overlay */}
-      {showCelebration && (
-        <div className="absolute inset-0 pointer-events-none z-10">
-          {/* Background glow */}
-          <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-yellow-400/20 to-green-400/20 rounded-2xl animate-pulse"></div>
-          
-          {/* Celebration particles */}
-          {particles.map((particle) => (
-            <div
-              key={particle.id}
-              className="absolute text-lg"
-              style={{
-                left: `${particle.left}%`,
-                top: `${particle.top}%`,
-                animationDelay: `${particle.animationDelay}s`,
-              }}
-            >
-              <span 
-                className="inline-block"
-                style={{ 
-                  animation: 'confettiPop 2s ease-out forwards'
-                }}
-              >
-                {particle.emoji}
-              </span>
-            </div>
-          ))}
-
-          {/* Growing plant animation */}
-          <div 
-            className="absolute top-1/2 left-20 transform -translate-y-1/2 text-4xl"
-            style={{ animation: 'plantGrow 1.2s ease-out' }}
-          >
-            🌱
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between relative z-20">
+    <Card className={cn(
+      "overflow-hidden transition-all duration-300 hover:shadow-md border-border/50",
+      isCompleted ? "opacity-90 bg-muted/40" : "bg-card"
+    )}>
+      <CardContent className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button
-            onClick={handleComplete}
-            disabled={isCompleted || isAnimating}
-            className={`relative w-16 h-16 rounded-full border-4 flex items-center justify-center transition-all duration-300 ${
-              isCompleted 
-                ? 'bg-green-500 border-green-500 shadow-lg shadow-green-500/30' 
-                : 'border-gray-300 hover:border-green-400 hover:scale-110'
-            } ${isAnimating ? 'animate-pulse' : ''}`}
-          >
-            {/* Ripple effect */}
-            {isAnimating && (
-              <div 
-                className="absolute inset-0 rounded-full bg-green-400 opacity-30"
-                style={{ animation: 'ripple 1s ease-out' }}
-              ></div>
+          <Button
+            variant="outline"
+            size="icon"
+            className={cn(
+              "h-12 w-12 rounded-full border-2 transition-all duration-500",
+              isCompleted
+                ? "bg-primary border-primary text-primary-foreground"
+                : "border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5",
+              isAnimating && "scale-110",
+              isCompleted && "hover:bg-primary/90"
             )}
-            
-            {isCompleted && <Check className="text-white" size={24} />}
-          </button>
-          
-          <div>
-            <h3 className={`font-semibold ${theme.text} text-lg`}>{habit}</h3>
-            <div className="flex items-center gap-2 mt-1">
-              <span 
-                className={`text-2xl transition-all duration-500 ${
-                  streak > 0 ? 'filter brightness-110' : ''
-                }`}
-                style={{ 
-                  animation: streak > 0 ? 'streakFireAnimation 3s ease-in-out infinite' : 'none'
-                }}
-              >
-                {getStreakEmoji(streak)}
-              </span>
-              <span className={`text-sm font-medium ${
-                streak > 0 ? 'text-green-500' : theme.textSecondary
-              }`}>
-                {streak} day streak
-              </span>
-              
-              {/* Streak milestone badge */}
-              {streak > 0 && (streak === 3 || streak === 7 || streak === 30 || streak === 100) && (
-                <span 
-                  className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs rounded-full font-bold"
-                  style={{ animation: 'badgeUnlock 1s ease-out' }}
-                >
-                  {streak === 3 && 'New Sprout!'}
-                  {streak === 7 && 'Growing Strong!'}
-                  {streak === 30 && 'Mighty Tree!'}
-                  {streak === 100 && 'Forest Master!'}
+            onClick={handleComplete}
+            disabled={isCompleted}
+          >
+            {isCompleted ? (
+              <Check className="h-6 w-6 animate-in zoom-in spin-in-180 duration-500" />
+            ) : (
+              <div className={cn("h-full w-full rounded-full transition-colors", isAnimating && "bg-primary/20")} />
+            )}
+          </Button>
+
+          <div className="space-y-1">
+            <h3 className={cn(
+              "font-semibold text-lg leading-none transition-colors",
+              isCompleted ? "text-muted-foreground line-through decoration-primary/30" : "text-foreground"
+            )}>
+              {habit}
+            </h3>
+
+            <div className="flex items-center gap-2 text-xs text-muted-foreground h-5">
+              {streak > 0 && (
+                <span className="flex items-center gap-1 font-medium text-primary/80 animate-in fade-in slide-in-from-left-2">
+                  <span>{streak} day streak</span>
+                  <span>{getStreakEmoji(streak)}</span>
                 </span>
               )}
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
