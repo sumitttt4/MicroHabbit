@@ -1,16 +1,5 @@
-import { PLANT_STAGES, STORAGE_KEYS } from '../config/constants';
+import { STORAGE_KEYS } from '../config/constants';
 
-/**
- * Get plant stage based on streak count
- */
-export const getPlantStage = (streak: number): string => {
-  if (streak === 0) return '⚫';
-  if (streak <= 3) return PLANT_STAGES[0];
-  if (streak <= 7) return PLANT_STAGES[1];
-  if (streak <= 14) return PLANT_STAGES[2];
-  if (streak <= 30) return PLANT_STAGES[3];
-  return PLANT_STAGES[4];
-};
 
 /**
  * Save data to localStorage
@@ -55,7 +44,7 @@ export const clearStorage = (): void => {
 export const checkNewDay = (): boolean => {
   const today = new Date().toDateString();
   const lastDate = localStorage.getItem(STORAGE_KEYS.LAST_DATE);
-  
+
   if (lastDate !== today) {
     localStorage.setItem(STORAGE_KEYS.LAST_DATE, today);
     localStorage.removeItem(STORAGE_KEYS.LEGACY_COMPLETED);
@@ -74,7 +63,7 @@ export const exportData = (habits: string[], streaks: Record<number, number>, co
     completedToday,
     exportDate: new Date().toISOString()
   };
-  
+
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

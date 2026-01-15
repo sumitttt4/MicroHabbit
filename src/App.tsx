@@ -1,8 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import SplashScreen from './components/SplashScreen';
-import AuthScreen from './components/AuthScreen';
-import OnboardingScreen from './components/OnboardingScreen';
-import DashboardHeader from './components/DashboardHeader';
 import Dashboard from './components/Dashboard';
 import GardenView from './components/GardenView';
 import CalendarView from './components/CalendarView';
@@ -10,30 +6,22 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import SocialSharing from './components/SocialSharing';
 import SettingsScreen from './components/SettingsScreen';
 import HabitEditor from './components/HabitEditor';
-import NotificationSettings from './components/NotificationSettings';
-import JournalScreen from './components/JournalScreen'; // Import JournalScreen
+import JournalScreen from './components/JournalScreen';
 import ErrorBoundary from './components/ErrorBoundary';
-import { LoadingOverlay } from './components/LoadingComponents';
 import { useEnhancedLocalStorage } from './hooks/useEnhancedLocalStorage';
 import { useAI } from './hooks/useAI';
-import { THEMES } from './config/constants';
-import { User, Habit } from './types';
-import { authService } from './services/authService';
+import { Habit } from './types';
 import { notificationService } from './services/notificationService';
 import { checkNewDay } from './utils/helpers';
-import { Home, Sprout, Calendar, BarChart3, Share2, Settings, Plus, Book, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Sprout, Calendar, BarChart3, BookOpen, Settings, Plus } from 'lucide-react';
 
-import PhoneFrame from './components/PhoneFrame';
-
-// ✅ Correct type export (isolatedModules safe)
-export type ViewType = 'splash' | 'auth' | 'onboarding' | 'dashboard' | 'settings';
+export type ViewType = 'dashboard' | 'settings';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<ViewType>('splash');
+  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'garden' | 'calendar' | 'analytics' | 'social' | 'journal'>('dashboard');
   const [showHabitEditor, setShowHabitEditor] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Enhanced storage hook
   const {
@@ -49,13 +37,11 @@ const App: React.FC = () => {
     completeHabit,
     uncompleteHabit,
     updateTheme,
-    updateNotifications,
     resetDailyProgress,
-    clearAllData,
-    exportData,
     completedToday,
     streaks,
-    lastCompletedDate
+    lastCompletedDate,
+    clearAllData
   } = useEnhancedLocalStorage();
 
   // AI hook
@@ -67,11 +53,9 @@ const App: React.FC = () => {
     generateAIMessage,
     generateHabitSuggestions,
     generateWeeklyInsight,
-    loadWeeklyInsight,
-    setSuggestedHabits,
   } = useAI();
 
-  // Initialize app + notifications
+  // Initialize app - AUTO LOGIN / DEFAULT USER
   useEffect(() => {
     notificationService.registerServiceWorker();
 
@@ -79,96 +63,23 @@ const App: React.FC = () => {
       resetDailyProgress();
     }
 
-    if (user) {
-      if (habits.length === 0) {
-        setCurrentView('onboarding');
-      } else {
-        setCurrentView('dashboard');
-      }
+    // Auto-create a local user if none exists (Bypass Auth)
+    if (!user) {
+      updateUser({
+        id: 'local-user',
+        name: 'You',
+        email: 'local@device',
+        preferences: { theme: 'light', notifications: true },
+        isPremium: true // Default to premium features for local
+      });
     }
 
-    if (notifications.enabled && user && habits.length > 0) {
-      const habitData = habits.map(habit => ({
-        name: habit.name,
-        completed: habitProgress[habit.id]?.completedToday || false,
-        streak: habitProgress[habit.id]?.currentStreak || 0
-      }));
-
-      notificationService.scheduleDailyNotifications(notifications, habitData);
-      notificationService.scheduleStreakReminders(habitData);
-    }
-
-    if (user?.isPremium) {
-      loadWeeklyInsight();
-
-      if (habits.length > 0) {
-        const legacyStreaks = Object.fromEntries(
-          habits.map((habit, index) => [index, habitProgress[habit.id]?.currentStreak || 0])
-        );
-        const legacyCompleted = Object.fromEntries(
-          habits.map((habit, index) => [index, habitProgress[habit.id]?.completedToday || false])
-        );
-        generateAIMessage(habits.map(h => h.name), legacyStreaks, legacyCompleted, user.email.split('@')[0]);
-      }
-    }
-  }, [user, habits.length, notifications, habitProgress, resetDailyProgress, loadWeeklyInsight, generateAIMessage]);
-
-  // Theme management using class-based Dark mode (Shadcn style)
-  useEffect(() => {
+    // Enforce Light Mode
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
+    root.classList.remove('dark');
+    root.classList.add('light');
 
-    // If theme is dark, or system is dark and theme is system (not handled here but good practice)
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.add('light');
-    }
-  }, [theme]);
-
-  // Auth handlers
-  const handleAuthSuccess = (userData: User) => {
-    updateUser(userData);
-    if (habits.length === 0) {
-      setCurrentView('onboarding');
-    } else {
-      setCurrentView('dashboard');
-    }
-  };
-
-  const handleLogout = async () => {
-    setIsLoading(true);
-    try {
-      await authService.logout();
-      notificationService.clearScheduledNotifications();
-      clearAllData();
-      setSuggestedHabits([]);
-      setCurrentView('splash');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Onboarding
-  const handleOnboardingComplete = (newHabits: string[]) => {
-    const habitObjects: Habit[] = newHabits.map((name, index) => ({
-      id: `habit_${Date.now()}_${index}`,
-      name,
-      description: '',
-      emoji: ['🎯', '💪', '📚', '🧘', '💧'][index % 5],
-      category: 'Health',
-      difficulty: 'medium',
-      isActive: true,
-      createdAt: new Date().toISOString()
-    }));
-
-    habitObjects.forEach(habit => addHabit(habit));
-    setCurrentView('dashboard');
-  };
-
-  const handleGenerateHabitSuggestions = () => {
-    generateHabitSuggestions(habits.map(h => h.name));
-  };
+  }, []);
 
   // Habit management
   const handleSaveHabit = (habit: Habit) => {
@@ -199,20 +110,6 @@ const App: React.FC = () => {
       uncompleteHabit(habitId);
     } else {
       completeHabit(habitId);
-
-      const newStreak = (progress?.currentStreak || 0) + 1;
-      if ([3, 7, 30, 100].includes(newStreak)) {
-        const milestones = {
-          3: 'First Sprout! 🌱',
-          7: 'Weekly Warrior! 🔥',
-          30: 'Monthly Master! 🏆',
-          100: 'Century Champion! 👑'
-        };
-        notificationService.showAchievement(
-          milestones[newStreak as keyof typeof milestones],
-          `You've completed "${habit.name}" for ${newStreak} days straight!`
-        );
-      }
     }
   };
 
@@ -223,80 +120,21 @@ const App: React.FC = () => {
     }
   };
 
-  const handleUpgradeToPremium = () => {
-    if (user) {
-      const updatedUser = { ...user, isPremium: true };
-      updateUser(updatedUser);
-      notificationService.showNotification('🎉 Premium Activated!', {
-        body: 'Welcome to MicroHabit Premium! Enjoy your new features.',
-        tag: 'premium-upgrade'
-      });
+  // Mock handlers
+  const handleGenerateAIMessage = () => { };
+  const handleGenerateHabitSuggestions = () => { };
+  const handleUpgradeToPremium = () => { };
+  const handleGenerateWeeklyInsight = () => { };
+  const handleLogout = () => {
+    // Data reset option strictly
+    if (window.confirm("This will clear all your data. Are you sure?")) {
+      clearAllData();
+      window.location.reload();
     }
   };
 
-  const handleGenerateAIMessage = () => {
-    if (user && habits.length > 0) {
-      const legacyStreaks = Object.fromEntries(
-        habits.map((habit, index) => [index, habitProgress[habit.id]?.currentStreak || 0])
-      );
-      const legacyCompleted = Object.fromEntries(
-        habits.map((habit, index) => [index, habitProgress[habit.id]?.completedToday || false])
-      );
-      generateAIMessage(habits.map(h => h.name), legacyStreaks, legacyCompleted, user.email.split('@')[0]);
-    }
-  };
-
-  const handleGenerateWeeklyInsight = () => {
-    const weeklyData = {
-      habits: habits.map(h => h.name),
-      streaks: Object.fromEntries(
-        habits.map((habit, index) => [index, habitProgress[habit.id]?.currentStreak || 0])
-      ),
-      completedToday: Object.fromEntries(
-        habits.map((habit, index) => [index, habitProgress[habit.id]?.completedToday || false])
-      ),
-      user: user?.email.split('@')[0]
-    };
-    generateWeeklyInsight(weeklyData);
-  };
 
   const completedCount = Object.values(completedToday || {}).filter(Boolean).length;
-
-  // View rendering
-  if (currentView === 'splash') {
-    return (
-      <ErrorBoundary>
-        <SplashScreen onGetStarted={() => setCurrentView('auth')} />
-      </ErrorBoundary>
-    );
-  }
-
-  if (currentView === 'auth') {
-    return (
-      <ErrorBoundary>
-        <PhoneFrame>
-          <LoadingOverlay isLoading={isLoading} message="Signing in...">
-            <AuthScreen onAuthSuccess={handleAuthSuccess} onBack={() => setCurrentView('splash')} />
-          </LoadingOverlay>
-        </PhoneFrame>
-      </ErrorBoundary>
-    );
-  }
-
-  if (currentView === 'onboarding') {
-    return (
-      <ErrorBoundary>
-        <PhoneFrame>
-          <OnboardingScreen
-            onComplete={handleOnboardingComplete}
-            suggestedHabits={suggestedHabits}
-            onGenerateSuggestions={handleGenerateHabitSuggestions}
-            loadingAI={loadingAI}
-          />
-        </PhoneFrame>
-      </ErrorBoundary>
-    );
-  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -309,7 +147,7 @@ const App: React.FC = () => {
           lastCompletedDate={lastCompletedDate}
           theme={theme}
           onCompleteHabit={handleLegacyCompleteHabit}
-          onUpgradeToPremium={handleUpgradeToPremium}
+          onUpgradeToPremium={() => { }}
         />
       case 'garden':
         return <GardenView
@@ -332,7 +170,7 @@ const App: React.FC = () => {
           habits={habits}
           habitProgress={habitProgress}
         />
-      case 'journal': // Existing
+      case 'journal':
         return <JournalScreen />
       default:
         return null;
@@ -341,97 +179,126 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <PhoneFrame>
-        <div className="bg-background text-foreground transition-colors duration-300 min-h-full">
+      <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
 
-          {currentView === 'settings' && (
-            <SettingsScreen
-              user={user}
-              theme={theme}
-              suggestedHabits={suggestedHabits}
-              loadingAI={loadingAI}
-              onClose={() => setCurrentView('dashboard')}
-              onThemeChange={updateTheme}
-              onUpgradeToPremium={handleUpgradeToPremium}
-              onLogout={handleLogout}
-              onGenerateAIMessage={handleGenerateAIMessage}
-              onGenerateHabitSuggestions={handleGenerateHabitSuggestions}
-              onGenerateWeeklyInsight={handleGenerateWeeklyInsight}
-              habits={habits.map(h => h.name)}
-              streaks={streaks}
-              completedToday={completedToday}
-            />
-          )}
-
-          <div className="p-4 pb-24">
-            {/* Header */}
-            <DashboardHeader
-              user={user}
-              completedCount={completedCount}
-              totalHabits={habits.length}
-              aiMessage={aiMessage}
-              weeklyInsight={weeklyInsight}
-              loadingAI={loadingAI}
-              onSettingsClick={() => setCurrentView('settings')}
-              onGenerateAIMessage={handleGenerateAIMessage}
-            />
-
-            {/* Content */}
-            {renderContent()}
-
-            {/* FAB for Adding Habits (Only on Dashboard) */}
-            {activeTab === 'dashboard' && (
-              <button
-                onClick={handleAddNewHabit}
-                className="absolute bottom-24 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 z-40"
-              >
-                <Plus className="w-6 h-6" />
-              </button>
-            )}
-
-            {/* Bottom Nav */}
-            <div className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border p-2 z-50 rounded-b-[2rem]">
-              <div className="flex justify-around items-center pb-2">
-                {[
-                  { key: 'dashboard', icon: Home, label: 'Home' },
-                  { key: 'garden', icon: Sprout, label: 'Garden' },
-                  { key: 'calendar', icon: Calendar, label: 'History' },
-                  { key: 'analytics', icon: BarChart3, label: 'Stats' },
-                  { key: 'journal', icon: BookOpen, label: 'Journal' }, // Added Journal
-                ].map(({ key, icon: Icon, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setActiveTab(key as any)}
-                    className={`flex flex-col items-center justify-center w-full py-2 transition-all ${activeTab === key ? 'text-primary scale-110' : 'text-muted-foreground hover:text-primary/70'
-                      }`}
-                  >
-                    <Icon className="w-5 h-5 mb-0.5" strokeWidth={activeTab === key ? 2.5 : 2} />
-                    <span className="text-[10px] font-medium">{label}</span>
-                  </button>
-                ))}
-              </div>
+        {/* Minimal Sidebar */}
+        <aside className="w-20 lg:w-64 border-r border-border bg-white flex flex-col transition-all duration-300">
+          <div className="p-6 flex items-center gap-3">
+            <div className="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center">
+              <Sprout className="w-5 h-5" />
             </div>
-
+            <h1 className="text-xl font-bold tracking-tight hidden lg:block">
+              MicroHabit
+            </h1>
           </div>
 
-          {/* Modals */}
-          <HabitEditor
-            habit={editingHabit}
-            isOpen={showHabitEditor}
-            onClose={() => {
-              setShowHabitEditor(false);
-              setEditingHabit(undefined);
-            }}
-            onSave={handleSaveHabit}
-            onDelete={handleDeleteHabit}
-          />
+          <nav className="flex-1 px-3 space-y-1 mt-6">
+            {[
+              { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+              { key: 'garden', icon: Sprout, label: 'Garden' },
+              { key: 'calendar', icon: Calendar, label: 'History' },
+              { key: 'analytics', icon: BarChart3, label: 'Analytics' },
+              { key: 'journal', icon: BookOpen, label: 'Journal' },
+            ].map(({ key, icon: Icon, label }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key as any)}
+                className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${activeTab === key
+                    ? 'bg-black text-white shadow-lg shadow-black/20'
+                    : 'text-gray-500 hover:bg-gray-100 hover:text-black'
+                  }`}
+              >
+                <Icon className={`w-5 h-5 ${activeTab === key ? 'text-white' : 'text-gray-500 group-hover:text-black'}`} />
+                <span className="hidden lg:block">{label}</span>
+              </button>
+            ))}
+          </nav>
 
-        </div>
-      </PhoneFrame>
+          <div className="p-3 border-t border-border space-y-2 mb-4">
+            <button
+              onClick={() => handleAddNewHabit()}
+              className="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-black bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200 justify-center group"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="hidden lg:block">New Habit</span>
+            </button>
+
+            <button
+              onClick={() => setCurrentView('settings')}
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-50 hover:text-black transition-colors"
+            >
+              <Settings className="w-5 h-5" />
+              <span className="hidden lg:block">Settings</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Main Content - Minimal clean area */}
+        <main className="flex-1 flex flex-col overflow-hidden bg-white">
+          {/* Header - Simplified */}
+          <header className="h-20 flex items-center justify-between px-8 shrink-0">
+            <div>
+              <h2 className="text-2xl font-bold capitalize tracking-tight">{activeTab}</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="text-right hidden sm:block">
+                <div className="text-sm font-medium text-black">{completedCount} / {habits.length} Completed</div>
+                <div className="w-32 h-1.5 bg-gray-100 rounded-full mt-1.5 overflow-hidden">
+                  <div
+                    className="h-full bg-black rounded-full transition-all duration-500"
+                    style={{ width: `${habits.length ? (completedCount / habits.length) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Scrollable Content Area */}
+          <div className="flex-1 overflow-auto p-8 pt-0">
+            <div className="max-w-5xl">
+              {currentView === 'settings' ? (
+                <SettingsScreen
+                  user={user}
+                  theme={theme}
+                  suggestedHabits={suggestedHabits}
+                  loadingAI={loadingAI}
+                  onClose={() => setCurrentView('dashboard')}
+                  onThemeChange={updateTheme}
+                  onUpgradeToPremium={handleUpgradeToPremium}
+                  onLogout={handleLogout}
+                  onGenerateAIMessage={handleGenerateAIMessage}
+                  onGenerateHabitSuggestions={handleGenerateHabitSuggestions}
+                  onGenerateWeeklyInsight={handleGenerateWeeklyInsight}
+                  habits={habits.map(h => h.name)}
+                  streaks={streaks}
+                  completedToday={completedToday}
+                />
+              ) : (
+                renderContent()
+              )}
+            </div>
+          </div>
+        </main>
+
+        {/* Modals */}
+        <HabitEditor
+          habit={editingHabit}
+          isOpen={showHabitEditor}
+          onClose={() => {
+            setShowHabitEditor(false);
+            setEditingHabit(undefined);
+          }}
+          onSave={handleSaveHabit}
+          onDelete={handleDeleteHabit}
+        />
+
+      </div>
     </ErrorBoundary>
   );
 };
 
 export default App;
-
-export { };

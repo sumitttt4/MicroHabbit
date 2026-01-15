@@ -1,12 +1,12 @@
 import React from 'react';
-import { Crown, Palette, Brain, Lightbulb, MessageCircle, Download, User, LogOut, Sparkles } from 'lucide-react';
+import { Crown, Palette, Brain, Lightbulb, MessageCircle, Download, User, Trash2, Sparkles } from 'lucide-react';
 import { THEMES } from '../config/constants';
 import { User as UserType } from '../types';
 import { exportData } from '../utils/helpers';
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from './ui/dialog';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
@@ -20,7 +20,7 @@ interface SettingsScreenProps {
   onClose: () => void;
   onThemeChange: (theme: string) => void;
   onUpgradeToPremium: () => void;
-  onLogout: () => void;
+  onLogout: () => void; // Used for "Reset Data" now
   onGenerateAIMessage: () => void;
   onGenerateHabitSuggestions: () => void;
   onGenerateWeeklyInsight: () => void;
@@ -52,132 +52,93 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden p-0 flex flex-col">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-hidden p-0 flex flex-col bg-white">
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="text-2xl font-serif">Settings</DialogTitle>
-          <DialogDescription>Manage your account, preferences, and AI features.</DialogDescription>
+          <DialogTitle className="text-xl font-bold tracking-tight">Settings</DialogTitle>
+          <DialogDescription>Preferences and personal data.</DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="flex-1 px-6 pb-6">
-          <div className="space-y-6">
+          <div className="space-y-8 mt-2">
 
-            {/* Premium Status */}
-            <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-orange-200 dark:border-orange-800">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full text-white shadow-sm">
-                    <Crown className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">
-                      {user?.isPremium ? 'Premium Plan' : 'Free Plan'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {user?.isPremium ? 'Active since Dec 2024' : 'Unlock full potential'}
-                    </p>
-                  </div>
-                </div>
-                {!user?.isPremium && (
-                  <Button onClick={onUpgradeToPremium} variant="default" className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 border-none shadow-md">
-                    Upgrade
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-
-            <Separator />
-
-            {/* Theme Selection */}
-            {user?.isPremium && (
-              <div className="space-y-3">
-                <h3 className="font-medium flex items-center gap-2">
-                  <Palette className="w-4 h-4" /> Theme
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {Object.keys(THEMES).map(themeKey => (
-                    <button
-                      key={themeKey}
-                      onClick={() => onThemeChange(themeKey)}
-                      className={`h-20 rounded-lg border-2 flex flex-col items-center justify-center gap-2 transition-all hover:scale-105 ${theme === themeKey ? 'border-primary ring-2 ring-primary/20' : 'border-muted'
-                        }`}
-                    >
-                      <div className={`w-6 h-6 rounded-full border shadow-sm ${THEMES[themeKey].primary.replace('bg-', 'bg-')}`} />
-                      <span className="text-xs font-medium capitalize">{themeKey}</span>
-                    </button>
-                  ))}
-                </div>
+            {/* Simpler Premium Status - always on for local */}
+            <div className="flex items-center gap-4 p-4 border rounded-lg bg-gray-50/50">
+              <div className="p-2 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg text-white shadow-sm">
+                <Crown className="w-5 h-5" />
               </div>
-            )}
+              <div>
+                <p className="font-semibold text-gray-900">Premium Active</p>
+                <p className="text-xs text-gray-500">Local Mode Unlocked</p>
+              </div>
+            </div>
 
             {/* AI Features */}
-            {user?.isPremium && (
-              <div className="space-y-3">
-                <h3 className="font-medium flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-purple-500" /> AI Coach
-                </h3>
-                <div className="grid gap-2">
-                  <Button variant="outline" className="justify-start h-auto py-3" onClick={onGenerateAIMessage} disabled={loadingAI}>
-                    <Brain className="w-4 h-4 mr-2 text-muted-foreground" />
-                    <div className="flex flex-col items-start text-left">
-                      <span className="text-sm font-medium">Get Motivation</span>
-                      <span className="text-xs text-muted-foreground">Daily personalized boost</span>
-                    </div>
-                  </Button>
-                  <Button variant="outline" className="justify-start h-auto py-3" onClick={onGenerateWeeklyInsight} disabled={loadingAI}>
-                    <MessageCircle className="w-4 h-4 mr-2 text-muted-foreground" />
-                    <div className="flex flex-col items-start text-left">
-                      <span className="text-sm font-medium">Weekly Insight</span>
-                      <span className="text-xs text-muted-foreground">Pattern analysis & tips</span>
-                    </div>
-                  </Button>
-                  <Button variant="outline" className="justify-start h-auto py-3" onClick={onGenerateHabitSuggestions} disabled={loadingAI}>
-                    <Lightbulb className="w-4 h-4 mr-2 text-muted-foreground" />
-                    <div className="flex flex-col items-start text-left">
-                      <span className="text-sm font-medium">Habit Ideas</span>
-                      <span className="text-xs text-muted-foreground">Discover new routines</span>
-                    </div>
-                  </Button>
-                </div>
-
-                {/* Display suggested habits */}
-                {suggestedHabits.length > 0 && (
-                  <div className="p-4 bg-muted/50 rounded-lg border">
-                    <p className="text-xs font-semibold mb-2 uppercase text-muted-foreground">Suggestions</p>
-                    <div className="flex flex-wrap gap-2">
-                      {suggestedHabits.map((suggestion, index) => (
-                        <Badge key={index} variant="secondary" className="font-normal">
-                          {suggestion}
-                        </Badge>
-                      ))}
-                    </div>
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2 text-gray-900">
+                <Sparkles className="w-4 h-4 text-purple-600" /> AI Coach
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Button variant="outline" className="h-auto py-4 px-3 flex flex-col items-start gap-2 hover:border-black/20 hover:bg-gray-50" onClick={onGenerateAIMessage} disabled={loadingAI}>
+                  <Brain className="w-5 h-5 text-gray-600" />
+                  <div className="text-left">
+                    <span className="block text-sm font-medium">Motivation</span>
+                    <span className="text-[10px] text-gray-400 font-normal">Daily boost</span>
                   </div>
-                )}
+                </Button>
+                <Button variant="outline" className="h-auto py-4 px-3 flex flex-col items-start gap-2 hover:border-black/20 hover:bg-gray-50" onClick={onGenerateWeeklyInsight} disabled={loadingAI}>
+                  <MessageCircle className="w-5 h-5 text-gray-600" />
+                  <div className="text-left">
+                    <span className="block text-sm font-medium">Insights</span>
+                    <span className="text-[10px] text-gray-400 font-normal">Analysis</span>
+                  </div>
+                </Button>
+                <Button variant="outline" className="h-auto py-4 px-3 flex flex-col items-start gap-2 hover:border-black/20 hover:bg-gray-50" onClick={onGenerateHabitSuggestions} disabled={loadingAI}>
+                  <Lightbulb className="w-5 h-5 text-gray-600" />
+                  <div className="text-left">
+                    <span className="block text-sm font-medium">Ideas</span>
+                    <span className="text-[10px] text-gray-400 font-normal">New habits</span>
+                  </div>
+                </Button>
               </div>
-            )}
+
+              {suggestedHabits.length > 0 && (
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                  <p className="text-xs font-semibold mb-2 uppercase text-gray-500">Suggestions</p>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestedHabits.map((suggestion, index) => (
+                      <Badge key={index} variant="secondary" className="font-normal bg-white border shadow-sm">
+                        {suggestion}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <Separator />
 
             {/* Data & Account */}
             <div className="space-y-4">
-              {user?.isPremium && (
-                <Button variant="outline" className="w-full justify-start" onClick={handleExportData}>
+              <h3 className="text-sm font-semibold text-gray-900">Data Management</h3>
+              <div className="grid gap-3">
+                <Button variant="outline" className="w-full justify-start h-10" onClick={handleExportData}>
                   <Download className="w-4 h-4 mr-2" /> Export Data
                 </Button>
-              )}
 
-              <div className="bg-muted/30 p-4 rounded-lg flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="w-5 h-5 text-primary" />
+                <div className="bg-red-50 p-4 rounded-lg flex items-center justify-between border border-red-100 mt-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                      <Trash2 className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-red-900">Reset Application</p>
+                      <p className="text-xs text-red-600/80">Clear all data and start over</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">{user?.name || 'User'}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
-                  </div>
+                  <Button variant="destructive" size="sm" onClick={onLogout} className="bg-red-600 hover:bg-red-700">
+                    Reset
+                  </Button>
                 </div>
-                <Button variant="destructive" size="sm" onClick={onLogout}>
-                  <LogOut className="w-4 h-4 mr-2" /> Sign Out
-                </Button>
               </div>
             </div>
 

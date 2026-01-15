@@ -3,9 +3,7 @@ import HabitCard from './HabitCard';
 import { User } from '../types';
 import { celebrateCompletion } from '../utils/helpers';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
-import { Separator } from './ui/separator'; // Need to create if not exists
 import { cn } from '../lib/utils';
-import { ArrowUpRight } from 'lucide-react';
 
 interface DashboardProps {
   user: User | null;
@@ -37,12 +35,10 @@ const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-      {/* Welcome Section / Header could go here in parent, but this is content */}
-
       {/* Habits List */}
       <div className="space-y-4">
         {habits.length === 0 ? (
-          <div className="text-center py-10 text-muted-foreground">
+          <div className="text-center py-20 bg-muted/20 rounded-xl border border-dashed text-muted-foreground">
             <p>No habits yet. Start by adding one!</p>
           </div>
         ) : (
@@ -59,26 +55,22 @@ const Dashboard: React.FC<DashboardProps> = ({
         )}
       </div>
 
-      {/* Stats Summary - "Garden" */}
-      <Card className="border-border/40 shadow-sm bg-muted/20">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-serif tracking-tight flex items-center gap-2">
-            Your Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-8">
-            <div className="flex flex-col gap-1">
-              <span className="text-3xl font-bold font-serif">{totalStreaks}</span>
-              <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Total Streak Days</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-3xl font-bold font-serif">{completedCount}</span>
-              <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Completed Today</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Stats Summary - Simple Clean Cards */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card className="bg-gray-50/50 border-gray-100 shadow-sm">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <span className="text-3xl font-bold tracking-tight text-black">{totalStreaks}</span>
+            <span className="text-xs text-gray-400 uppercase tracking-widest font-medium mt-1">Total Streak Days</span>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-50/50 border-gray-100 shadow-sm">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <span className="text-3xl font-bold tracking-tight text-black">{completedCount}</span>
+            <span className="text-xs text-gray-400 uppercase tracking-widest font-medium mt-1">Completed Today</span>
+          </CardContent>
+        </Card>
+      </div>
 
     </div>
   );

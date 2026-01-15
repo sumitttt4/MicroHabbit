@@ -1,9 +1,8 @@
 import React from 'react';
-import { Sprout, Award, TrendingUp } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { Sprout, Award, TrendingUp, TreeDeciduous, Flower, Leaf } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { cn } from '../lib/utils';
 
-// Removed theme prop as we use Shadcn/Tailwind classes
 interface GardenViewProps {
   habits: string[];
   streaks: Record<number, number>;
@@ -12,10 +11,10 @@ interface GardenViewProps {
 }
 
 interface PlantInfo {
-  emoji: string;
+  icon: React.ElementType;
   name: string;
   description: string;
-  size: 'small' | 'medium' | 'large' | 'xlarge';
+  color: string; // Tailwind color class
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
 }
 
@@ -26,29 +25,19 @@ const GardenView: React.FC<GardenViewProps> = ({
 }) => {
   const getPlantInfo = (streak: number): PlantInfo => {
     if (streak >= 100) {
-      return { emoji: '🌳', name: 'Ancient Oak', description: 'Legendary (100+ days)', size: 'xlarge', rarity: 'legendary' };
+      return { icon: TreeDeciduous, name: 'Ancient Oak', description: 'Legendary (100+ days)', color: 'text-green-800', rarity: 'legendary' };
     } else if (streak >= 50) {
-      return { emoji: '🌲', name: 'Evergreen Pine', description: 'Epic (50+ days)', size: 'large', rarity: 'epic' };
+      return { icon: TreeDeciduous, name: 'Evergreen Pine', description: 'Epic (50+ days)', color: 'text-green-700', rarity: 'epic' };
     } else if (streak >= 30) {
-      return { emoji: '🌵', name: 'Desert Warrior', description: 'Rare (30+ days)', size: 'large', rarity: 'rare' };
+      return { icon: Flower, name: 'Desert Flower', description: 'Rare (30+ days)', color: 'text-yellow-600', rarity: 'rare' };
     } else if (streak >= 15) {
-      return { emoji: '🌻', name: 'Sunflower', description: 'Rare (15+ days)', size: 'medium', rarity: 'rare' };
+      return { icon: Flower, name: 'Sunflower', description: 'Rare (15+ days)', color: 'text-yellow-500', rarity: 'rare' };
     } else if (streak >= 7) {
-      return { emoji: '🌿', name: 'Lucky Clover', description: 'Common (7+ days)', size: 'medium', rarity: 'common' };
+      return { icon: Leaf, name: 'Lucky Clover', description: 'Common (7+ days)', color: 'text-green-500', rarity: 'common' };
     } else if (streak >= 3) {
-      return { emoji: '🌱', name: 'Young Sprout', description: 'Common (3+ days)', size: 'small', rarity: 'common' };
+      return { icon: Sprout, name: 'Young Sprout', description: 'Common (3+ days)', color: 'text-green-400', rarity: 'common' };
     } else {
-      return { emoji: '🌾', name: 'Seed', description: 'Beginner', size: 'small', rarity: 'common' };
-    }
-  };
-
-  const getPlantSize = (size: string) => {
-    switch (size) {
-      case 'xlarge': return 'text-7xl';
-      case 'large': return 'text-6xl';
-      case 'medium': return 'text-5xl';
-      case 'small': return 'text-4xl';
-      default: return 'text-3xl';
+      return { icon: Sprout, name: 'Seed', description: 'Beginner', color: 'text-stone-400', rarity: 'common' };
     }
   };
 
@@ -76,38 +65,38 @@ const GardenView: React.FC<GardenViewProps> = ({
         <Card>
           <CardHeader className="py-4">
             <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Plants</CardTitle>
-            <div className="text-3xl font-bold font-serif">{totalPlants}</div>
+            <div className="text-3xl font-bold">{totalPlants}</div>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="py-4">
             <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Mature Plants</CardTitle>
-            <div className="text-3xl font-bold font-serif">{maturePlants}</div>
+            <div className="text-3xl font-bold">{maturePlants}</div>
           </CardHeader>
         </Card>
       </div>
 
       {/* Garden Grid */}
-      <h2 className="text-xl font-serif font-semibold mt-8 mb-4">Your Garden</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <h2 className="text-xl font-semibold mt-8 mb-4">Your Garden</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {habits.map((habit, index) => {
           const streak = streaks[index] || 0;
           const isCompleted = completedToday[index] || false;
           const plant = getPlantInfo(streak);
+          const PlantIcon = plant.icon;
 
           return (
             <Card key={index} className={cn(
               "relative overflow-hidden transition-all duration-300 hover:shadow-md border-border/60",
-              isCompleted ? "bg-muted/30" : "bg-card"
+              isCompleted ? "bg-success/5" : "bg-card"
             )}>
               <CardContent className="p-6 flex flex-col items-center justify-center text-center space-y-3">
                 <div className={cn(
-                  "transition-all duration-700",
-                  getPlantSize(plant.size),
+                  "transition-all duration-700 p-3 rounded-full bg-background border shadow-sm",
                   streak > 0 && "animate-in zoom-in spin-in-[5deg] duration-1000",
-                  isCompleted && "scale-110 drop-shadow-sm"
+                  isCompleted && "scale-110 drop-shadow-md border-success/30"
                 )}>
-                  {plant.emoji}
+                  <PlantIcon className={cn("w-10 h-10", plant.color)} />
                 </div>
 
                 <div className="space-y-1">
@@ -126,7 +115,7 @@ const GardenView: React.FC<GardenViewProps> = ({
               {/* Minimal streak indicator at bottom */}
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted">
                 <div
-                  className="h-full bg-primary/50"
+                  className="h-full bg-success/50"
                   style={{ width: `${Math.min(streak, 100)}%`, transition: 'width 1s ease-in-out' }}
                 />
               </div>
@@ -136,7 +125,7 @@ const GardenView: React.FC<GardenViewProps> = ({
 
         {/* Placeholder for new habits */}
         {habits.length < 9 && (
-          <Card className="border-dashed flex flex-col items-center justify-center p-6 text-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20 transition-colors cursor-default">
+          <Card className="border-dashed flex flex-col items-center justify-center p-6 text-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/20 transition-colors cursor-default min-h-[160px]">
             <Sprout className="w-8 h-8 mb-2 opacity-50" />
             <span className="text-xs">New Spot</span>
           </Card>
